@@ -58,10 +58,11 @@ It does not build for macOS or Linux.
 | `nativeImage` | Partial | PNG images, bitmaps and data URLs; JPEG, ICO, resizing and cropping are not available |
 | `Notification` | Partial | shown as notification area balloons, which Windows shows as banners; actions, replies and urgency are not available |
 | `protocol` | Partial | `registerSchemesAsPrivileged` only |
-| `net` | Partial | `net.fetch` only |
+| `net` | Partial | `net.fetch` and `net.request` only |
 | `session` | Partial | the common request APIs only |
 | `crashReporter` | Partial | `start` writes local crash dumps; reports are not uploaded |
-| `powerMonitor`, `powerSaveBlocker`, `safeStorage`, `systemPreferences`, `autoUpdater` | Not supported | |
+| `autoUpdater` | Partial | behaves as in applications Squirrel.Windows did not install: checks report that Squirrel is missing; the electron-updater package updates native builds |
+| `powerMonitor`, `powerSaveBlocker`, `safeStorage`, `systemPreferences` | Not supported | |
 | The `webContents` module (`getAllWebContents`, `fromId`...) | Not supported | use each window's `webContents` |
 | Any other module | Not supported | |
 

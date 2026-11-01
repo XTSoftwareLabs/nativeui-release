@@ -1,5 +1,132 @@
 # Changelog
 
+## 0.1.0-alpha.4
+
+- Applications update themselves with electron-updater. The build writes
+  `resources\app-update.yml` from electron-builder's `publish` settings,
+  taking the GitHub repository from package.json or the `origin` remote as
+  electron-builder does, and makes a Windows installer with the update
+  metadata (`latest.yml`) beside it. Native builds take their own feed from
+  `nativeboat.publish` in package.json. The installer installs for the
+  current user with shortcuts, an uninstaller and an Installed apps entry,
+  takes NSIS's `/S` and `/D=`, and installs updates into the running
+  application's folder once it exits.
+- `net.request` works as in Electron: requests are writable streams,
+  redirects are followed, refused or handed to the `redirect` event as the
+  `redirect` option says, and responses are readable streams with the
+  status, headers and body. `session.fromPartition` gives the session
+  every partition shares.
+- Child processes have `ref()` and `unref()`: an unreferenced child no
+  longer keeps a Node program running.
+- Electron's `autoUpdater` behaves as in applications Squirrel.Windows did
+  not install: it keeps its feed URL, checks report that Squirrel is
+  missing, and its events reach their listeners.
+
+- The application's files that electron-builder's `files` setting selects,
+  such as its pages, style sheets, images, translations and the programs
+  it starts, are copied beside the executable, without the sources the
+  build compiles into it. Pages load the style sheets and images they link
+  to, and the application finds its files wherever it is installed. The
+  application's own CommonJS modules see `__dirname` and `__filename` in
+  that folder, and `loadFile` takes a relative path from it, as in
+  Electron.
+- `require('original-fs')` gives `fs`, as compiled applications have no
+  ASAR archives.
+- `app.getSystemLocale()` reports the Windows regional format, such as
+  `en-US`.
+- `session.resolveProxy(url)` reports the proxy the Windows settings give
+  for a URL, from a configuration script, automatic detection or a fixed
+  server with its bypass list, as `DIRECT`, `PROXY host:port` or
+  `SOCKS host:port`.
+
+- Libraries a page loads with classic `<script>` tags in their universal
+  module form, such as SlimSelect, set their globals as in a browser:
+  `module` and `exports` are only the page's own.
+- `offsetTop` and `offsetLeft` are measured from the offset parent's
+  padding edge in layout positions, as in Chromium: scrolling a list does
+  not change its items' offsets, so widgets that scroll an item into view
+  land on it.
+- Pages that fade text or shadows with `opacity` repaint up to ten times
+  faster: only the area the faded content covers is composited, not the
+  whole window.
+
+- Applications show their first window sooner: `process.ppid` no longer
+  lists every process on the system at startup.
+- JSON Schema validation (Ajv, as conf and electron-store use it) works out
+  once per schema which keywords apply, so settings stores validate faster.
+- Content faded out to `opacity: 0`, such as a closed drop-down list, is
+  not painted.
+- Text that sets no font uses the standard font of the user's language, as
+  Chromium does: Microsoft YaHei on Simplified Chinese Windows, Times New
+  Roman on English Windows.
+- Each script of a page ends in a microtask checkpoint, as in browsers, and
+  replies to IPC the script requested arrive before the next script runs,
+  as they do in Electron while the page's other scripts load. Pages whose
+  later scripts read what an earlier script awaited, such as a saved
+  language, now see it on the first launch.
+
+- Default and fallback fonts follow the Electron version the application
+  uses: before Electron 32, Chinese, Japanese and Korean text uses the
+  system fonts Chromium then chose (Microsoft YaHei on Chinese Windows)
+  rather than Noto CJK fonts, so lines are as tall as in the application's
+  Electron.
+- Text symbols such as a heart without an emoji selector are drawn in a
+  symbol font, as Chromium draws them, and before Electron 34 an emoji
+  selector keeps a character in a page font that has it.
+- Bold text at weight 600 in system fonts uses their bold face, such as
+  Microsoft YaHei Bold, as Chromium does.
+- Images from `http` and `https` addresses load: they download in the
+  background and fire `load` or `error` when they arrive, and the page
+  repaints with them.
+- WebP images are shown on every Windows edition, and images in other
+  formats Windows has a codec for are shown too.
+- Images and inline event handlers (`onload="..."`, `onclick="..."`) in
+  markup that scripts insert with `innerHTML`, `insertAdjacentHTML`,
+  `outerHTML` or `createContextualFragment` work as in Chromium, when the
+  handler's text is written out in the scripts. The page's own images fire
+  `load` and `error`.
+- `Intl.DisplayNames` names languages, regions, scripts, currencies,
+  calendars and date fields in the requested language.
+- Pages can show notifications with the web `Notification` API, which
+  Electron allows by default; they appear as the application's
+  notifications, and clicking one fires its `click` event.
+- An error nothing catches in a preload script's callback is reported on
+  the console and the application keeps running, as in Electron; it used
+  to close the application.
+- Background images and other images style sheets name at `http` and
+  `https` addresses download and show.
+- Web notifications show their icons: files, data URLs and images from the
+  network.
+- Images follow `object-fit` and `object-position`, and clip to rounded
+  corners.
+- Rounded borders whose sides differ in width, color or style keep their
+  corners, and small round boxes no longer show lines across them.
+- Variable web fonts show the weights pages ask for, and `@font-face`
+  `unicode-range` and weight ranges choose between a family's faces.
+- `color-mix()` in every color space, `lab()` and `lch()`, gradients'
+  interpolation spaces, and `calc()` with `infinity`, `pi` and `e`.
+- Scrollbars look and behave as the application's Chromium release draws
+  them: Fluent scrollbars since Chromium 135, buttons and tracks that repeat
+  while held, no thumb when nothing scrolls, and window scrollbars that take
+  room from the page. Media queries, viewport units and `innerWidth` see
+  the whole window, as in Chromium.
+- Text and boxes land on the same device pixels as in Chromium, text is
+  smoothed in grayscale where Chromium smooths it so (composited layers,
+  filters, text fields), and windows take the size Electron gives them at
+  fractional display scales.
+- Content under a blurred backdrop, such as a toast under a dialog,
+  repaints without dark edges when it changes.
+- Requests send the user agent Electron and Node send.
+- `--user-data-dir` sets the application's user data folder, as in
+  Electron.
+- Computed styles report logical properties, such as `margin-inline-start`,
+  as the physical sides they map to.
+- `Intl.Locale` works, and errors from calling something that is not a
+  constructor name it, as V8 does.
+- `webFrame.setVisualZoomLevelLimits` takes two numbers, as in Electron.
+- fflate's asynchronous API works.
+- Spell checking no longer fails when it is used from another thread.
+
 ## 0.1.0-alpha.3
 
 - `assert` has Node's whole API: `equal`, `notEqual`, the deep and strict
