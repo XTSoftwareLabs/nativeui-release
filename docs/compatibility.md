@@ -23,7 +23,7 @@ It does not build for macOS or Linux.
 | Electron Forge with the Vite plugin | Supported | |
 | electron-builder configuration | Supported | app metadata, `files`, `extraResources`, `extraFiles`, output folder, `publish`; in `package.json`, YAML, JSON, JavaScript or TypeScript files |
 | electron-updater | Supported | updates from the feed electron-builder's `publish` or `nativeboat.publish` in `package.json` names; each update downloads the whole installer |
-| Windows installer (`nsis`) | Partial | installs for the current user with shortcuts, an uninstaller and update metadata (`latest.yml`); `artifactName` and the shortcut settings apply; `oneClick: false`, `perMachine`, `allowToChangeInstallationDirectory`, `license`, `include` and `script` are ignored with a warning |
+| Windows installer (`nsis`) | Partial | installs for the current user with shortcuts, an uninstaller and update metadata (`latest.yml`); `artifactName` and the shortcut settings apply; `oneClick: false`, `perMachine`, `allowToChangeInstallationDirectory`, `license`, `include` and `script` are ignored |
 | npm, pnpm, Yarn, Bun | Supported | |
 | Vue | Supported | |
 | Tailwind CSS 4 (`@tailwindcss/vite`) | Supported | |
