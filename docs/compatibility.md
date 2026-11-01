@@ -1,6 +1,6 @@
 # Compatibility
 
-What NativeBoat 0.1.0-alpha.3 supports in an Electron application, in three
+What NativeBoat 0.1.0-alpha.4 supports in an Electron application, in three
 levels:
 
 - **Supported**: works as in Electron.
@@ -21,7 +21,9 @@ It does not build for macOS or Linux.
 | Plain Electron, JavaScript and TypeScript (`tsc`) | Supported | |
 | electron-vite, vite-plugin-electron, Vite | Supported | |
 | Electron Forge with the Vite plugin | Supported | |
-| electron-builder configuration | Supported | app metadata, `files`, `extraResources`, `extraFiles`, output folder; in `package.json`, YAML, JSON, JavaScript or TypeScript files |
+| electron-builder configuration | Supported | app metadata, `files`, `extraResources`, `extraFiles`, output folder, `publish`; in `package.json`, YAML, JSON, JavaScript or TypeScript files |
+| electron-updater | Supported | updates from the feed electron-builder's `publish` or `nativeboat.publish` in `package.json` names; each update downloads the whole installer |
+| Windows installer (`nsis`) | Partial | installs for the current user with shortcuts, an uninstaller and update metadata (`latest.yml`); `artifactName` and the shortcut settings apply; `oneClick: false`, `perMachine`, `allowToChangeInstallationDirectory`, `license`, `include` and `script` are ignored with a warning |
 | npm, pnpm, Yarn, Bun | Supported | |
 | Vue | Supported | |
 | Tailwind CSS 4 (`@tailwindcss/vite`) | Supported | |
@@ -42,6 +44,7 @@ It does not build for macOS or Linux.
 | Dynamic `require` | Partial | only modules known at build time are included; others throw `MODULE_NOT_FOUND` when they run |
 | Standard decorators | Not supported | only TypeScript's `experimentalDecorators` are compiled |
 | Top-level `await` | Not supported | modules are evaluated synchronously |
+| `eval` and `new Function` with source text | Not supported | code cannot be made from strings while the application runs |
 | Remote scripts | Not supported | scripts must be part of the application |
 
 ## Electron APIs
@@ -54,12 +57,12 @@ It does not build for macOS or Linux.
 | `clipboard`, `shell` | Supported | |
 | `Tray`, `globalShortcut` | Supported | |
 | `nativeTheme`, `screen`, `webUtils` | Supported | |
-| `webFrame` | Partial | zoom only (`get`/`setZoomFactor`, `get`/`setZoomLevel`); spell checking and other methods are not available |
+| `webFrame` | Partial | zoom only (`get`/`setZoomFactor`, `get`/`setZoomLevel`, `setVisualZoomLevelLimits`, though pages are not pinch-zoomed); spell checking and other methods are not available |
 | `nativeImage` | Partial | PNG images, bitmaps and data URLs; JPEG, ICO, resizing and cropping are not available |
 | `Notification` | Partial | shown as notification area balloons, which Windows shows as banners; actions, replies and urgency are not available |
 | `protocol` | Partial | `registerSchemesAsPrivileged` only |
 | `net` | Partial | `net.fetch` and `net.request` only |
-| `session` | Partial | the common request APIs only |
+| `session` | Partial | `defaultSession` and `fromPartition`, which give one shared session, with `setProxy`, `resolveProxy` and preload scripts; `webRequest`, `cookies` and other members are not available |
 | `crashReporter` | Partial | `start` writes local crash dumps; reports are not uploaded |
 | `autoUpdater` | Partial | behaves as in applications Squirrel.Windows did not install: checks report that Squirrel is missing; the electron-updater package updates native builds |
 | `powerMonitor`, `powerSaveBlocker`, `safeStorage`, `systemPreferences` | Not supported | |
@@ -74,6 +77,7 @@ It does not build for macOS or Linux.
 | `process`, `assert`, `querystring`, `string_decoder` | Supported | |
 | `timers`, `stream`, `stream/web`, `readline` | Supported | |
 | `http` | Supported | |
+| `original-fs` | Supported | the same as `fs`, as compiled applications have no ASAR archives |
 | `child_process` | Partial | `spawn`, `exec`, `execFile`, `execSync`, `execFileSync`; `fork` is not available, as there is no Node.js executable |
 | `https` | Partial | `request` and `get`; response bodies arrive whole; servers and custom agents are not available |
 | `net` | Partial | TCP sockets and servers; named pipes are not available |
@@ -115,7 +119,7 @@ implemented natively, so they work without their addon:
 | `XMLHttpRequest` | Partial | asynchronous requests only |
 | `window.open` | Partial | opens a new native window or the default browser |
 | Clipboard API | Partial | text only |
-| Web notifications | Partial | shown in the notification area; clicks are not reported |
+| Web notifications | Partial | shown as notification area balloons, which Windows shows as banners, with their icons; `show`, `click`, `close` and `error` events fire; actions are not available |
 | `document.execCommand` | Partial | `copy`, `cut`, `paste`, `undo`, `redo`, `selectAll`, `insertText`, `insertParagraph`, `insertLineBreak`, `delete` and `forwardDelete` are supported; other commands are not available |
 | WebGL | Not supported | |
 | Web Workers, Service Workers | Not supported | scripts run on the UI thread only |
@@ -137,6 +141,7 @@ conic gradients draw as linear gradients, and `isPointInPath` and
 | `canvas` | Supported | |
 | Tables, including captions | Supported | |
 | `details`, `summary` | Supported | |
+| Inline event handlers (`onclick="..."`) | Partial | handlers in the application's pages work; in markup that scripts insert, only handlers whose text is written out in the scripts |
 | SVG | Partial | shapes, paths, text, markers, `use` and dashed strokes are drawn; gradients, patterns, clip paths, masks, filters, images, text on a path and SVG animations are not |
 | `dialog` | Partial | `show()` and `close()` work; `showModal()` opens the dialog in place, without the top layer, a backdrop or making the rest of the page inert |
 | `iframe`, `webview` | Not supported | |
@@ -151,6 +156,7 @@ conic gradients draw as linear gradients, and `isPointInPath` and
 | Flexbox, Grid, `position: sticky` | Supported | |
 | Floats | Supported | |
 | Tables (`display: table`) | Supported | |
+| `display: contents` | Supported | |
 | `@media`, `@supports`, `@import` | Supported | including stylesheets imported from packages |
 | Cascade layers (`@layer`), `@property` | Supported | |
 | `box-shadow` | Supported | |
@@ -163,12 +169,11 @@ conic gradients draw as linear gradients, and `isPointInPath` and
 | `font-variant-numeric`, `font-feature-settings` | Supported | |
 | Scrollbar styling (`::-webkit-scrollbar` parts, `scrollbar-color`, `scrollbar-width`) | Supported | background images in scrollbar parts are not drawn |
 | Linear gradients | Supported | one opaque layer with an angle or side and increasing percentage stops |
-| Other gradients | Partial | corner directions, transparent stops, length or hard stops, repeating and radial gradients and multiple layers are approximate |
+| Other gradients | Partial | corner directions, transparent stops, length or hard stops, repeating and radial gradients and multiple layers are approximate; conic gradients are not drawn |
 | Right-to-left text (`direction`, `unicode-bidi`, `dir`) | Partial | text, lines, carets and selections follow the direction; grid columns, block margins, list markers and scrollbars keep their left-to-right sides |
 | `clip-path: url(...)` to another document | Partial | does not clip |
 | `mask` referencing an SVG `<mask>` element | Partial | does not mask |
-| `display: contents` | Partial | treated as a normal box |
-| `@font-face` | Partial | installed system fonts are used |
+| `@font-face` | Partial | fonts in the application's files and data URLs load, including WOFF, WOFF2 and variable fonts, with `unicode-range` and weight ranges; fonts at `http` and `https` addresses and fonts scripts add with `FontFace` are not loaded |
 | `text-shadow` | Partial | not drawn |
 | `overflow-anchor` | Partial | scroll positions are not adjusted when content above changes |
 | Unknown properties | Partial | ignored |
@@ -180,8 +185,7 @@ conic gradients draw as linear gradients, and `isPointInPath` and
 
 ## Known differences
 
-- Text uses ClearType, except in scrolling areas that Chromium draws as
-  layers of their own. Electron may draw text in some other layers in
-  grayscale.
-- Box positions are rounded to whole CSS pixels, so a click within half a pixel
-  of a line's edge can land on the next line.
+- Text uses ClearType, and grayscale where Chromium uses it: in scrolling
+  areas and elements with backdrop filters that Chromium draws as layers of
+  their own, under filters and in text fields. Electron may draw text in some
+  other layers, such as animated ones, in grayscale.
